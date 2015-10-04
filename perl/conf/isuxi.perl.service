@@ -1,0 +1,15 @@
+[Unit]
+Description=isuxi-perl
+After=syslog.target
+
+[Service]
+WorkingDirectory=/home/isucon/webapp/perl
+EnvironmentFile=/home/isucon/env.sh
+Environment=PLACK_ENV=production
+
+#ExecStart=/home/isucon/.local/perl/bin/carton exec -- plackup -s Starman -p 8080 --workers 10 --disable-keepalive app.psgi
+ExecStart=/home/isucon/webapp/perl/script/server.sh
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
