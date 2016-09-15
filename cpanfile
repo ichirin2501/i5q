@@ -4,3 +4,6 @@ requires "DBIx::Sunny";
 requires "DBD::mysql";
 requires "Starman";
 requires "Plack::Session";
+requires "Server::Starter";
+requires "Gazelle";
+requires "Devel::NYTProf";
