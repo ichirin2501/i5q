@@ -6,7 +6,7 @@ cd $(dirname $0)
 cd ..
 # root
 
-#sudo sysctl -p
+sudo sysctl -p
 sudo ./bin/logrotate.sh
 sudo systemctl restart nginx
 #sudo service memcached restart
