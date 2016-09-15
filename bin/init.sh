@@ -13,6 +13,6 @@ sudo systemctl restart nginx
 sudo systemctl restart mysql
 echo 'sleep 3s'
 sleep 3
-sudo systemctl reload isuxi.perl.service
+sudo systemctl restart isuxi.perl.service
 sleep 2
 echo "init ok"
