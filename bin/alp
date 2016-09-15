@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -ex
+
+ssh -t isucon@i5qimage "sudo alp -f /var/log/nginx/isucon.access_log.tsv --aggregates='/diary/entry/\d+,/diary/comment/\d+,/diary/entries/[a-zA-Z0-9]+,/profile/[a-zA-Z0-9]+,/friends/[a-zA-Z0-9]+'"
+

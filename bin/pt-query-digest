@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -ex
+
+ssh -t isucon@i5qimage "sudo pt-query-digest /var/lib/mysql/mysqld-slow.log"
+
