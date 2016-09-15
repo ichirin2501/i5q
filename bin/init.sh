@@ -7,8 +7,8 @@ cd ..
 # root
 
 #sudo sysctl -p
-#sudo ./bin/logrotate.sh
-#sudo service nginx restart
+sudo ./bin/logrotate.sh
+sudo service nginx restart
 #sudo service memcached restart
 #sudo service mysql restart
 echo 'sleep 3s'
