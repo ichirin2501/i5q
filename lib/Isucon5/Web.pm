@@ -245,19 +245,8 @@ SQL
         last if @$comments_of_friends+0 >= 10;
     }
 
-    my $friends_query = 'SELECT * FROM relations WHERE one = ? ORDER BY created_at DESC';
-    my %friends = ();
-    my $friends = [];
-    for my $rel (@{db->select_all($friends_query, current_user()->{id})}) {
-        my $key = ($rel->{one} == current_user()->{id} ? 'another' : 'one');
-        $friends{$rel->{$key}} ||= do {
-            my $friend = get_user($rel->{$key});
-            $rel->{account_name} = $friend->{account_name};
-            $rel->{nick_name} = $friend->{nick_name};
-            push @$friends, $rel;
-            $rel;
-        };
-    }
+    # countするだけで良い
+    my $friend_count = db->select_one('SELECT count(*) AS cnt FROM relations WHERE one = ?', current_user()->{id});
 
     my $query = <<SQL;
 SELECT user_id, owner_id, created_at as updated
@@ -281,7 +270,7 @@ SQL
         'comments_for_me' => $comments_for_me,
         'entries_of_friends' => $entries_of_friends,
         'comments_of_friends' => $comments_of_friends,
-        'friends' => $friends,
+        'friend_count' => $friend_count,
         'footprints' => $footprints
     };
     $c->render('index.tx', $locals);
