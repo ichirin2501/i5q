@@ -256,19 +256,13 @@ SQL
     my $friend_count = db->select_one('SELECT count(*) AS cnt FROM relations WHERE one = ?', current_user()->{id});
 
     my $query = <<SQL;
-SELECT user_id, owner_id, created_at as updated
-FROM footprints
+SELECT user_id, owner_id, created_at as updated, account_name, nick_name
+FROM footprints JOIN users ON footprints.owner_id = users.id
 WHERE user_id = ?
 ORDER BY updated DESC
 LIMIT 10
 SQL
-    my $footprints = [];
-    for my $fp (@{db->select_all($query, current_user()->{id})}) {
-        my $owner = get_user($fp->{owner_id});
-        $fp->{account_name} = $owner->{account_name};
-        $fp->{nick_name} = $owner->{nick_name};
-        push @$footprints, $fp;
-    }
+    my $footprints = db->select_all($query, current_user()->{id});
 
     my $locals = {
         'user' => current_user(),
