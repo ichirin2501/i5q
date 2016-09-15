@@ -104,8 +104,8 @@ sub user_from_account {
 sub is_friend {
     my ($another_id) = @_;
     my $user_id = session()->{user_id};
-    my $query = 'SELECT COUNT(1) AS cnt FROM relations WHERE (one = ? AND another = ?) OR (one = ? AND another = ?)';
-    my $cnt = db->select_one($query, $user_id, $another_id, $another_id, $user_id);
+    my $query = 'SELECT COUNT(1) AS cnt FROM relations WHERE (one = ? AND another = ?)';
+    my $cnt = db->select_one($query, $user_id, $another_id);
     return $cnt > 0 ? 1 : 0;
 }
 
@@ -241,10 +241,10 @@ SQL
         last if @$comments_of_friends+0 >= 10;
     }
 
-    my $friends_query = 'SELECT * FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC';
+    my $friends_query = 'SELECT * FROM relations WHERE one = ? ORDER BY created_at DESC';
     my %friends = ();
     my $friends = [];
-    for my $rel (@{db->select_all($friends_query, current_user()->{id}, current_user()->{id})}) {
+    for my $rel (@{db->select_all($friends_query, current_user()->{id})}) {
         my $key = ($rel->{one} == current_user()->{id} ? 'another' : 'one');
         $friends{$rel->{$key}} ||= do {
             my $friend = get_user($rel->{$key});
@@ -449,10 +449,10 @@ SQL
 
 get '/friends' => [qw(set_global authenticated)] => sub {
     my ($self, $c) = @_;
-    my $query = 'SELECT * FROM relations WHERE one = ? OR another = ? ORDER BY created_at DESC';
+    my $query = 'SELECT * FROM relations WHERE one = ? ORDER BY created_at DESC';
     my %friends = ();
     my $friends = [];
-    for my $rel (@{db->select_all($query, current_user()->{id}, current_user()->{id})}) {
+    for my $rel (@{db->select_all($query, current_user()->{id})}) {
         my $key = ($rel->{one} == current_user()->{id} ? 'another' : 'one');
         $friends{$rel->{$key}} ||= do {
             my $friend = get_user($rel->{$key});
