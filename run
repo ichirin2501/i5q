@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+exec carton exec -- \
+  start_server --port 8080 -- \
+    plackup -s Gazelle \
+      --max-reqs-per-child=2000000 \
+      --min-reqs-per-child=1000000 \
+      -E production -a ./app.psgi
