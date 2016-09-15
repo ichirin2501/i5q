@@ -226,7 +226,7 @@ SQL
     }
 
     my $entries_of_friends = [];
-    for my $entry (@{db->select_all('SELECT id,user_id,private,created_at, SUBSTRING_INDEX(body,\'\n\',1) AS title FROM entries ORDER BY created_at DESC LIMIT 1000')}) {
+    for my $entry (@{db->select_all('SELECT id,user_id,private,created_at, SUBSTRING_INDEX(body,\'\n\',1) AS title FROM entries ORDER BY created_at DESC LIMIT 100')}) {
         next if ! exists $friend_hash->{ $entry->{user_id} };
         my $owner = get_user($entry->{user_id});
         $entry->{account_name} = $owner->{account_name};
@@ -236,7 +236,7 @@ SQL
     }
 
     my $comments_of_friends = [];
-    for my $comment (@{db->select_all('SELECT * FROM comments ORDER BY created_at DESC LIMIT 1000')}) {
+    for my $comment (@{db->select_all('SELECT * FROM comments ORDER BY created_at DESC LIMIT 100')}) {
         next if ! exists $friend_hash->{ $comment->{user_id} };
         my $entry = db->select_row('SELECT * FROM entries WHERE id = ?', $comment->{entry_id});
         $entry->{is_private} = ($entry->{private} == 1);
