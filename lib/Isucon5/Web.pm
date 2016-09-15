@@ -238,7 +238,7 @@ SQL
     my $comments_of_friends = [];
     for my $comment (@{db->select_all('SELECT * FROM comments ORDER BY created_at DESC LIMIT 1000')}) {
         next if ! exists $friend_hash->{ $comment->{user_id} };
-        my $entry = db->select_row('SELECT * FROM entries WHERE id = ?', $comment->{entry_id});
+        my $entry = db->select_row('SELECT id,user_id,private,created_at FROM entries WHERE id = ?', $comment->{entry_id});
         $entry->{is_private} = ($entry->{private} == 1);
         next if ($entry->{is_private} && !permitted($entry->{user_id}));
         my $entry_owner = get_user($entry->{user_id});
