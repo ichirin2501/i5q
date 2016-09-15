@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -ex
+IPADDR=$1
+USERNAME=$USER
+
+ssh -t isucon@$IPADDR "cd /home/isucon/webapp/perl && git pull && ./env.sh carton install && sudo ./bin/copy-file.sh && sudo ./bin/init.sh"
