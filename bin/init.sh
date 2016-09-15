@@ -8,9 +8,9 @@ cd ..
 
 #sudo sysctl -p
 sudo ./bin/logrotate.sh
-sudo service nginx restart
+sudo systemctl restart nginx
 #sudo service memcached restart
-#sudo service mysql restart
+sudo systemctl restart mysql
 echo 'sleep 3s'
 sleep 3
 sudo systemctl reload isuxi.perl.service
