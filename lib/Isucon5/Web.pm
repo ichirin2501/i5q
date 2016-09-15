@@ -185,15 +185,9 @@ get '/' => [qw(set_global authenticated)] => sub {
 
     my $profile = db->select_row('SELECT * FROM profiles WHERE user_id = ?', current_user()->{id});
 
-    my $entries_query = 'SELECT * FROM entries WHERE user_id = ? ORDER BY created_at LIMIT 5';
-    my $entries = [];
-    for my $entry (@{db->select_all($entries_query, current_user()->{id})}) {
-        $entry->{is_private} = ($entry->{private} == 1);
-        my ($title, $content) = split(/\n/, $entry->{body}, 2);
-        $entry->{title} = $title;
-        $entry->{content} = $content;
-        push @$entries, $entry;
-    }
+    # privateは0 or 1のはず？それ以上ならIF使う、あとで確認
+    my $entries_query = 'SELECT id, user_id, private AS is_private, created_at, SUBSTRING_INDEX(body, \'\n\', 1) AS title FROM entries WHERE user_id = ? ORDER BY created_at LIMIT 5';
+    my $entries = db->select_all($entries_query, current_user()->{id});
 
     my $comments_for_me_query = <<SQL;
 SELECT c.id AS id, c.entry_id AS entry_id, c.user_id AS user_id, c.comment AS comment, c.created_at AS created_at
@@ -213,10 +207,8 @@ SQL
     }
 
     my $entries_of_friends = [];
-    for my $entry (@{db->select_all('SELECT * FROM entries ORDER BY created_at DESC LIMIT 1000')}) {
+    for my $entry (@{db->select_all('SELECT id,user_id,private,created_at, SUBSTRING_INDEX(body,\'\n\',1) AS title FROM entries ORDER BY created_at DESC LIMIT 1000')}) {
         next if (!is_friend($entry->{user_id}));
-        my ($title) = split(/\n/, $entry->{body});
-        $entry->{title} = $title;
         my $owner = get_user($entry->{user_id});
         $entry->{account_name} = $owner->{account_name};
         $entry->{nick_name} = $owner->{nick_name};
