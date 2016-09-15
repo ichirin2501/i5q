@@ -117,7 +117,7 @@ sub is_friend_account {
 sub mark_footprint {
     my ($user_id) = @_;
     if ($user_id != current_user()->{id}) {
-        my $query = 'INSERT INTO footprints (user_id,owner_id) VALUES (?,?)';
+        my $query = 'INSERT INTO footprints (user_id,owner_id) VALUES (?,?) ON DUPLICATE KEY UPDATE created_at = NOW()';
         db->query($query, $user_id, current_user()->{id});
     }
 }
@@ -256,10 +256,9 @@ SQL
     }
 
     my $query = <<SQL;
-SELECT user_id, owner_id, DATE(created_at) AS date, MAX(created_at) as updated
+SELECT user_id, owner_id, created_at as updated
 FROM footprints
 WHERE user_id = ?
-GROUP BY user_id, owner_id, DATE(created_at)
 ORDER BY updated DESC
 LIMIT 10
 SQL
@@ -432,10 +431,9 @@ post '/diary/comment/:entry_id' => [qw(set_global authenticated)] => sub {
 get '/footprints' => [qw(set_global authenticated)] => sub {
     my ($self, $c) = @_;
     my $query = <<SQL;
-SELECT user_id, owner_id, DATE(created_at) AS date, MAX(created_at) as updated
+SELECT user_id, owner_id, created_at as updated
 FROM footprints
 WHERE user_id = ?
-GROUP BY user_id, owner_id, DATE(created_at)
 ORDER BY updated DESC
 LIMIT 50
 SQL
