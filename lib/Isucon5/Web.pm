@@ -209,7 +209,7 @@ get '/' => [qw(set_global authenticated)] => sub {
     my $entries = db->select_all($entries_query, current_user()->{id});
 
     my $comments_for_me_query = <<SQL;
-SELECT * FROM comments FROM owner_id = ? ORDER BY created_at DESC LIMIT 10
+SELECT * FROM comments WHERE owner_id = ? ORDER BY created_at DESC LIMIT 10
 SQL
     my $comments_for_me = [];
     my $comments = [];
