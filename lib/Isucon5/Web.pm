@@ -6,6 +6,18 @@ use utf8;
 use Kossy;
 use DBIx::Sunny;
 use Encode;
+use Redis::Fast;
+use JSON::XS;
+
+my $redis;
+sub redis {
+    $redis ||= Redis::Fast->new;
+}
+
+my $json_driver;
+sub json_driver {
+    $json_driver ||= JSON::XS->new->utf8;
+}
 
 my $db;
 sub db {
@@ -79,26 +91,26 @@ sub current_user {
 
     return undef if (!session()->{user_id});
 
-    $user = db->select_row('SELECT id, account_name, nick_name, email FROM users WHERE id=?', session()->{user_id});
+    $user = redis->get(sprintf("users:id:%d",session()->{user_id}));
     if (!$user) {
         session()->{user_id} = undef;
         abort_authentication_error();
     }
-    return $user;
+    return json_driver->decode($user);
 }
 
 sub get_user {
     my ($user_id) = @_;
-    my $user = db->select_row('SELECT * FROM users WHERE id = ?', $user_id);
+    my $user = redis->get(sprintf("users:id:%d",$user_id));
     abort_content_not_found() if (!$user);
-    return $user;
+    return json_driver->decode($user);
 }
 
 sub user_from_account {
     my ($account_name) = @_;
-    my $user = db->select_row('SELECT * FROM users WHERE account_name = ?', $account_name);
+    my $user = redis->get(sprintf("users:account_name:%s",$account_name));
     abort_content_not_found() if (!$user);
-    return $user;
+    return json_driver->decode($user);
 }
 
 sub is_friend {
@@ -475,6 +487,15 @@ get '/initialize' => sub {
     db->query("DELETE FROM footprints WHERE id > 500000");
     db->query("DELETE FROM entries WHERE id > 500000");
     db->query("DELETE FROM comments WHERE id > 1500000");
+
+    # redis初期化
+    redis->flushdb;
+    my $users = db->select_all('SELECT * FROM users');
+    for my $u (@$users) {
+        redis->set(sprintf("users:id:%d",$u->{id}), json_driver->encode($u), sub {});
+        redis->set(sprintf("users:account_name:%s",$u->{account_name}), json_driver->encode($u), sub {});
+    }
+    redis->wait_all_responses;
 };
 
 1;
