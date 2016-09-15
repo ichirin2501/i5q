@@ -197,6 +197,13 @@ get '/' => [qw(set_global authenticated)] => sub {
 
     my $profile = db->select_row('SELECT * FROM profiles WHERE user_id = ?', current_user()->{id});
 
+    # 最初に友達を引いておく
+    my $friend_hash = {};
+    my $friend_ids = db->select_all('SELECT another FROM relations WHERE one = ?', current_user()->{id});
+    for my $f (@$friend_ids) {
+        $friend_hash->{ $f->{another} } = 1;
+    }
+
     # privateは0 or 1のはず？それ以上ならIF使う、あとで確認
     my $entries_query = 'SELECT id, user_id, private AS is_private, created_at, SUBSTRING_INDEX(body, \'\n\', 1) AS title FROM entries WHERE user_id = ? ORDER BY created_at LIMIT 5';
     my $entries = db->select_all($entries_query, current_user()->{id});
@@ -220,7 +227,7 @@ SQL
 
     my $entries_of_friends = [];
     for my $entry (@{db->select_all('SELECT id,user_id,private,created_at, SUBSTRING_INDEX(body,\'\n\',1) AS title FROM entries ORDER BY created_at DESC LIMIT 1000')}) {
-        next if (!is_friend($entry->{user_id}));
+        next if ! exists $friend_hash->{ $entry->{user_id} };
         my $owner = get_user($entry->{user_id});
         $entry->{account_name} = $owner->{account_name};
         $entry->{nick_name} = $owner->{nick_name};
@@ -230,7 +237,7 @@ SQL
 
     my $comments_of_friends = [];
     for my $comment (@{db->select_all('SELECT * FROM comments ORDER BY created_at DESC LIMIT 1000')}) {
-        next if (!is_friend($comment->{user_id}));
+        next if ! exists $friend_hash->{ $comment->{user_id} };
         my $entry = db->select_row('SELECT * FROM entries WHERE id = ?', $comment->{entry_id});
         $entry->{is_private} = ($entry->{private} == 1);
         next if ($entry->{is_private} && !permitted($entry->{user_id}));
