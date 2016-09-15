@@ -6,7 +6,7 @@ export NYTPROF="addpid=1:start=no:sigexit=1:blocks=1:file=/tmp/nytprof.out"
 
 exec carton exec -- \
   start_server --port 8080 -- \
-    plackup -MDevel::NYTProf-s Gazelle \
+    plackup -MDevel::NYTProf -s Gazelle \
       --max-reqs-per-child=2000000 \
       --min-reqs-per-child=1000000 \
       -E production -a ./app.psgi
