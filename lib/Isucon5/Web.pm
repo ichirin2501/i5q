@@ -496,6 +496,8 @@ get '/initialize' => sub {
         redis->set(sprintf("users:account_name:%s",$u->{account_name}), json_driver->encode($u), sub {});
     }
     redis->wait_all_responses;
+
+    1;
 };
 
 1;
