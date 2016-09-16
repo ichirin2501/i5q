@@ -367,7 +367,7 @@ get '/diary/entry/:entry_id' => [qw(set_global authenticated)] => sub {
     if ($entry->{is_private} && !permitted($owner->{id})) {
         abort_permission_denied();
     }
-    my $comments = db->select_all('SELECT comments.*,account_name,nick_name FROM comments JOIN users ON comments.user_id = users_id WHERE entry_id = ?', $entry->{id});
+    my $comments = db->select_all('SELECT comments.*,account_name,nick_name FROM comments JOIN users ON comments.user_id = users.id WHERE entry_id = ?', $entry->{id});
     mark_footprint($owner->{id});
     my $locals = {
         'owner' => $owner,
