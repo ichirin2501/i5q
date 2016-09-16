@@ -427,20 +427,8 @@ SQL
 
 get '/friends' => [qw(set_global authenticated)] => sub {
     my ($self, $c) = @_;
-    my $query = 'SELECT * FROM relations WHERE one = ? ORDER BY created_at DESC';
-    my %friends = ();
-    my $friends = [];
-    for my $rel (@{db->select_all($query, current_user()->{id})}) {
-        my $key = ($rel->{one} == current_user()->{id} ? 'another' : 'one');
-        $friends{$rel->{$key}} ||= do {
-            my $friend = get_user($rel->{$key});
-            $rel->{account_name} = $friend->{account_name};
-            $rel->{nick_name} = $friend->{nick_name};
-            push @$friends, $rel;
-            $rel;
-        };
-    }
-    #my $friends = [ sort { $a->{created_at} lt $b->{created_at} } values(%friends) ];
+    my $query = 'SELECT relations.*,account_name,nick_name FROM relations JOIN users ON relations.another = users.id WHERE one = ? ORDER BY relations.created_at DESC';
+    my $friends = db->select_all($query, current_user()->{id});
     $c->render('friends.tx', { friends => $friends });
 };
 
