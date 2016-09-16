@@ -209,16 +209,10 @@ get '/' => [qw(set_global authenticated)] => sub {
     my $entries = db->select_all($entries_query, current_user()->{id});
 
     my $comments_for_me_query = <<SQL;
-SELECT * FROM comments WHERE owner_id = ? ORDER BY created_at DESC LIMIT 10
+SELECT comments.*,account_name,nick_name FROM comments JOIN users ON comments.user_id = users.id WHERE owner_id = ? ORDER BY comments.created_at DESC LIMIT 10
 SQL
-    my $comments_for_me = [];
+    my $comments_for_me = db->select_all($comments_for_me_query, current_user()->{id});
     my $comments = [];
-    for my $comment (@{db->select_all($comments_for_me_query, current_user()->{id})}) {
-        my $comment_user = get_user($comment->{user_id});
-        $comment->{account_name} = $comment_user->{account_name};
-        $comment->{nick_name} = $comment_user->{nick_name};
-        push @$comments_for_me, $comment;
-    }
 
     my $entries_of_friends = [];
     for my $entry (@{db->select_all('SELECT id,user_id,private,created_at, SUBSTRING_INDEX(body,\'\n\',1) AS title FROM entries ORDER BY created_at DESC LIMIT 100')}) {
