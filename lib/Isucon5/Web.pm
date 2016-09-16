@@ -369,13 +369,7 @@ get '/diary/entry/:entry_id' => [qw(set_global authenticated)] => sub {
     if ($entry->{is_private} && !permitted($owner->{id})) {
         abort_permission_denied();
     }
-    my $comments = [];
-    for my $comment (@{db->select_all('SELECT * FROM comments WHERE entry_id = ?', $entry->{id})}) {
-        my $comment_user = get_user($comment->{user_id});
-        $comment->{account_name} = $comment_user->{account_name};
-        $comment->{nick_name} = $comment_user->{nick_name};
-        push @$comments, $comment;
-    }
+    my $comments = db->select_all('SELECT comments.*,account_name,nick_name FROM comments JOIN users ON comments.user_id = users_id WHERE entry_id = ?', $entry->{id});
     mark_footprint($owner->{id});
     my $locals = {
         'owner' => $owner,
