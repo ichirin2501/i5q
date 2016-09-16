@@ -342,7 +342,7 @@ get '/diary/entries/:account_name' => [qw(set_global authenticated)] => sub {
         my ($title, $content) = split(/\n/, $entry->{body}, 2);
         $entry->{title} = $title;
         $entry->{content} = $content;
-        $entry->{comment_count} = db->select_one('SELECT COUNT(*) AS c FROM comments WHERE entry_id = ?', $entry->{id});
+        $entry->{comment_count} = redis->get(sprintf('comments:entry_id:%d:count',$entry->{id})) // 0;
         push @$entries, $entry;
     }
     mark_footprint($owner->{id});
@@ -400,6 +400,7 @@ post '/diary/comment/:entry_id' => [qw(set_global authenticated)] => sub {
     my $query = 'INSERT INTO comments (entry_id, user_id, comment, owner_id) VALUES (?,?,?,?)';
     my $comment = $c->req->param('comment');
     db->query($query, $entry->{id}, current_user()->{id}, $comment, $entry->{user_id});
+    redis->incr(sprintf('comments:entry_id:%d:count',$entry->{id}));
     redirect('/diary/entry/'.$entry->{id});
 };
 
@@ -449,6 +450,13 @@ get '/initialize' => sub {
         redis->set(sprintf("users:id:%d",$u->{id}), json_driver->encode($u), sub {});
         redis->set(sprintf("users:account_name:%s",$u->{account_name}), json_driver->encode($u), sub {});
     }
+
+    # 各コメント数を記録する
+    my $comments = db->select_all('SELECT entry_id, count(*) AS cnt FROM comments GROUP BY entry_id');
+    for my $c (@$comments) {
+        redis->set(sprintf("comments:entry_id:%d:count",$c->{entry_id}), $c->{cnt}, sub {});
+    }
+
     redis->wait_all_responses;
 
     1;
