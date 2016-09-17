@@ -11,7 +11,7 @@ use JSON::XS;
 
 my $redis;
 sub redis {
-    $redis ||= Redis::Fast->new;
+    $redis ||= Redis::Fast->new( sock => '/var/run/redis/redis.sock' );
 }
 
 my $json_driver;
