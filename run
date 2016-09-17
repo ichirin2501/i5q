@@ -5,7 +5,6 @@ cd $(dirname $0)
 exec carton exec -- \
   start_server --path /tmp/app.sock -- \
     plackup -s Gazelle \
-      --max-workers=16 \
       --max-reqs-per-child=2000000 \
       --min-reqs-per-child=1000000 \
       -E production -a ./app.psgi
